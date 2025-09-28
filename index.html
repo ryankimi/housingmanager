@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Penginapan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <div id="halaman-daftar-penginapan" class="page">
+        <h1>PENGINAPAN <span class="highlight-text">MANAGER</span></h1>
+        <p class="subtitle">by RK</p>
+        <h3>DAFTAR PENGINAPAN</h3>
+        <div id="container-daftar-penginapan"></div>
+        <button id="tombol-tambah-penginapan-baru" class="tombol-utama">+ TAMBAH PENGINAPAN BARU</button>
+    </div>
+
+    <div id="halaman-menu" class="page hidden">
+        <button class="tombol-kembali" id="kembali-ke-daftar-penginapan">&larr; Kembali ke Daftar</button>
+        <h2 id="display-nama-penginapan-menu"></h2>
+        <h3>MENU UTAMA</h3>
+        <div class="menu-container">
+            <button id="menu-total-cashflow" class="menu-button">Total Cashflow</button>
+            <button id="menu-pemasukan-kamar" class="menu-button">Input Pemasukan Kamar</button>
+            <button id="menu-pengeluaran" class="menu-button">Pengeluaran</button>
+            <button id="menu-kamar" class="menu-button">Kamar</button>
+        </div>
+    </div>
+    
+    <div id="halaman-kamar" class="page hidden">
+        <button class="tombol-kembali" id="kembali-ke-menu-dari-kamar">&larr; Kembali ke Menu</button>
+        <h2 id="display-nama-penginapan-kamar"></h2>
+        <h3>MANAJEMEN KAMAR</h3>
+        <div class="form-tambah-kamar">
+            <input type="text" id="input-nama-kamar-baru" placeholder="Masukkan Nama Kamar Baru">
+            <button id="tombol-tambah-kamar" class="tombol-utama-kecil">Tambah</button>
+        </div>
+        <div id="container-daftar-kamar"></div>
+        
+        <h3 class="sub-judul">CEK KETERSEDIAAN KAMAR</h3>
+        <div class="filter-container">
+             <input type="date" id="filter-tanggal-tersedia">
+             <button id="tombol-cek-tersedia" class="tombol-utama-kecil">Cek Kamar Tersedia</button>
+        </div>
+        <div id="container-hasil-tersedia"></div>
+    </div>
+
+
+    <div id="halaman-cashflow" class="page hidden">
+        <button class="tombol-kembali" id="kembali-ke-menu-dari-cashflow">&larr; Kembali ke Menu</button>
+        <h2 id="display-nama-penginapan-cashflow"></h2>
+        <h3>TOTAL CASHFLOW</h3>
+        <div class="filter-container">
+            <label for="filter-bulan-cashflow">Tampilkan Bulan:</label>
+            <select id="filter-bulan-cashflow"></select>
+        </div>
+        <div id="container-tabel-cashflow"></div>
+    </div>
+
+    <div id="halaman-pemasukan" class="page hidden">
+        <button class="tombol-kembali" id="kembali-ke-menu-dari-pemasukan">&larr; Kembali ke Menu</button>
+        <h2 id="display-nama-penginapan-pemasukan"></h2>
+        <h3>CATATAN PEMASUKAN KAMAR</h3>
+        <div class="filter-container">
+            <label for="filter-bulan-pemasukan">Tampilkan Bulan:</label>
+            <select id="filter-bulan-pemasukan"></select>
+        </div>
+        <button id="tombol-tambah-pemasukan-baru" class="tombol-utama">+ Tambah Pemasukan Baru</button>
+        <div id="container-tabel-pemasukan"></div>
+    </div>
+
+    <div id="halaman-pengeluaran" class="page hidden">
+        <button class="tombol-kembali" id="kembali-ke-menu-dari-pengeluaran">&larr; Kembali ke Menu</button>
+        <h2 id="display-nama-penginapan-pengeluaran"></h2>
+        <h3>CATATAN PENGELUARAN</h3>
+        <div class="filter-container">
+            <label for="filter-bulan-pengeluaran">Tampilkan Bulan:</label>
+            <select id="filter-bulan-pengeluaran"></select>
+        </div>
+        <button id="tombol-tambah-pengeluaran-baru" class="tombol-utama">+ Tambah Pengeluaran Baru</button>
+        <div id="container-tabel-pengeluaran"></div>
+    </div>
+
+    <div id="modal-pemasukan" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="modal-judul-pemasukan">Tambah Pemasukan Baru</h3>
+            <form id="form-pemasukan">
+                <input type="hidden" id="edit-id-pemasukan">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="input-jenis-sewa">Jenis Sewa</label>
+                        <select id="input-jenis-sewa" required>
+                            <option value="harian">Harian</option>
+                            <option value="bulanan">Bulanan</option>
+                        </select>
+                    </div>
+                     <div class="form-group">
+                        <label for="input-listrik-status">Status Listrik (Khusus Bulanan)</label>
+                        <select id="input-listrik-status">
+                            <option value="termasuk">Termasuk Listrik</option>
+                            <option value="diluar">Di Luar Listrik</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-tgl-masuk">Tanggal Masuk</label>
+                        <input id="input-tgl-masuk" type="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-tgl-keluar">Tanggal Keluar</label>
+                        <input id="input-tgl-keluar" type="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-nama-kamar">Nama Kamar</label>
+                        <select id="input-nama-kamar" required></select>
+                    </div>
+                    <div class="form-group autocomplete-wrapper">
+                        <label for="input-nama-penyewa">Nama Penyewa</label>
+                        <input id="input-nama-penyewa" type="text" placeholder="Contoh: Budi Santoso" required autocomplete="off">
+                        <div class="autocomplete-suggestions" id="suggestions-penyewa"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-harga-kamar">Harga Kamar</label>
+                        <input id="input-harga-kamar" type="text" inputmode="decimal" placeholder="Harga per hari/bulan" required>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="tombol-utama">Simpan</button>
+                    <button type="button" id="tombol-batal-modal-pemasukan" class="tombol-sekunder">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-pengeluaran" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="modal-judul-pengeluaran">Tambah Pengeluaran Baru</h3>
+            <form id="form-pengeluaran">
+                <input type="hidden" id="edit-id-pengeluaran">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="input-tgl-pengeluaran">Tanggal</label>
+                        <input id="input-tgl-pengeluaran" type="date" required>
+                    </div>
+                    <div class="form-group autocomplete-wrapper">
+                        <label for="input-nama-pengeluaran">Nama Pengeluaran</label>
+                        <input id="input-nama-pengeluaran" type="text" placeholder="Contoh: Listrik, Wifi, Perbaikan" required autocomplete="off">
+                        <div class="autocomplete-suggestions" id="suggestions-pengeluaran"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-biaya-pengeluaran">Biaya Pengeluaran</label>
+                        <input id="input-biaya-pengeluaran" type="text" inputmode="decimal" placeholder="Jumlah biaya" required>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="tombol-utama">Simpan</button>
+                    <button type="button" id="tombol-batal-modal-pengeluaran" class="tombol-sekunder">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
