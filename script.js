@@ -525,11 +525,9 @@ function renderPemasukanTable() {
     // LOGIKA SORTING
     filtered.sort((a, b) => {
         let valA, valB;
-        if (sortPemasukan.column === 'penghasilan') {
-            const hariA = Math.ceil((new Date(a.tglKeluar) - new Date(a.tglMasuk)) / (1000 * 60 * 60 * 24)) || 1;
-            valA = a.jenisSewa === 'harian' ? hariA * a.harga : a.harga;
-            const hariB = Math.ceil((new Date(b.tglKeluar) - new Date(b.tglMasuk)) / (1000 * 60 * 60 * 24)) || 1;
-            valB = b.jenisSewa === 'harian' ? hariB * b.harga : b.harga;
+        if (sortPemasukan.column === 'jumlahBayar') {
+            valA = a.jumlahBayar || 0;
+            valB = b.jumlahBayar || 0;
         } else { // Handles tglMasuk and tglKeluar
             valA = new Date(a[sortPemasukan.column]);
             valB = new Date(b[sortPemasukan.column]);
@@ -551,8 +549,8 @@ function renderPemasukanTable() {
         { key: 'jenisSewa', label: 'Jenis Sewa', sortable: false },
         { key: 'kamar', label: 'Kamar', sortable: false },
         { key: 'penyewa', label: 'Penyewa', sortable: false },
-        { key: 'harga', label: 'Harga', sortable: false },
-        { key: 'penghasilan', label: 'Penghasilan', sortable: true },
+        { key: 'harga', label: 'Harga Kamar', sortable: false },
+        { key: 'jumlahBayar', label: 'Pembayaran', sortable: true },
         { key: 'status', label: 'Status', sortable: false },
         { key: 'bukti', label: 'Bukti Transfer', sortable: false },
         { key: 'aksi', label: 'Aksi', sortable: false },
@@ -572,13 +570,10 @@ function renderPemasukanTable() {
     headerHTML += '</tr>';
 
     let bodyHTML = '';
-    let totalPenghasilan = 0;
+    let totalPembayaran = 0;
 
     filtered.forEach(t => {
-        const penghasilan = t.jenisSewa === 'harian' 
-            ? (Math.ceil((new Date(t.tglKeluar) - new Date(t.tglMasuk)) / (1000 * 60 * 60 * 24)) || 1) * t.harga 
-            : t.harga;
-        totalPenghasilan += penghasilan;
+        totalPembayaran += t.jumlahBayar || 0;
         
         const buktiDisplay = t.bukti 
             ? `<a href="${t.bukti}" target="_blank" class="link-bukti">Lihat Bukti</a>`
@@ -592,6 +587,14 @@ function renderPemasukanTable() {
         const statusDisplay = currentUserRole === 'admin'
             ? `<div class="status-box ${statusClass}" onclick="cycleTransferStatus(${t.id})">${formatTampilan(statusTransfer)}</div>`
             : `<div class="status-box non-clickable ${statusClass}">${formatTampilan(statusTransfer)}</div>`;
+        
+        let actionButtons = '';
+        if (currentUserRole === 'admin') {
+            actionButtons = `
+                <button onclick="editPemasukan(${t.id})">&#9998;</button>
+                <button class="tombol-hapus-bongkaran" onclick="hapusTransaksi(${t.id}, 'pemasukan')">&times;</button>
+            `;
+        }
 
         bodyHTML += `
             <tr data-id="${t.id}">
@@ -600,14 +603,11 @@ function renderPemasukanTable() {
                 <td data-label="Jenis Sewa">${formatTampilan(t.jenisSewa)}</td>
                 <td data-label="Kamar">${formatTampilan(roomName)}</td>
                 <td data-label="Penyewa">${formatTampilan(t.namaPenyewa)}</td>
-                <td data-label="Harga">${t.harga.toLocaleString('id-ID')}</td>
-                <td data-label="Penghasilan"><strong>${penghasilan.toLocaleString('id-ID')}</strong></td>
+                <td data-label="Harga Kamar">${(t.harga || 0).toLocaleString('id-ID')}</td>
+                <td data-label="Pembayaran"><strong>${(t.jumlahBayar || 0).toLocaleString('id-ID')}</strong></td>
                 <td data-label="Status">${statusDisplay}</td>
                 <td data-label="Bukti Transfer">${buktiDisplay}</td>
-                <td data-label="Aksi" class="col-actions">
-                    <button onclick="editPemasukan(${t.id})">&#9998;</button>
-                    <button class="tombol-hapus-bongkaran" onclick="hapusTransaksi(${t.id}, 'pemasukan')">&times;</button>
-                </td>
+                <td data-label="Aksi" class="col-actions">${actionButtons}</td>
             </tr>`;
     });
 
@@ -616,8 +616,8 @@ function renderPemasukanTable() {
         <tbody>${bodyHTML}</tbody>
         <tfoot>
             <tr>
-                <td colspan="6"><strong>TOTAL</strong></td>
-                <td><strong>${totalPenghasilan.toLocaleString('id-ID')}</strong></td>
+                <td colspan="6"><strong>TOTAL PEMBAYARAN</strong></td>
+                <td><strong>${totalPembayaran.toLocaleString('id-ID')}</strong></td>
                 <td colspan="3"></td>
             </tr>
         </tfoot>
@@ -687,6 +687,14 @@ function renderPengeluaranTable() {
             ? `<a href="${t.bukti}" target="_blank" class="link-bukti">Lihat Bukti</a>`
             : `<button class="tombol-upload-bukti" onclick="uploadBuktiPengeluaran(${t.id})">Input Link Bukti</button>`;
 
+        let actionButtons = '';
+        if (currentUserRole === 'admin') {
+            actionButtons = `
+                <button onclick="editPengeluaran(${t.id})">&#9998;</button>
+                <button class="tombol-hapus-bongkaran" onclick="hapusTransaksi(${t.id}, 'pengeluaran')">&times;</button>
+            `;
+        }
+
         bodyHTML += `
             <tr data-id="${t.id}">
                 <td data-label="Tanggal">${formatDate(t.tanggal)}</td>
@@ -694,10 +702,7 @@ function renderPengeluaranTable() {
                 <td data-label="Biaya"><strong>${t.biaya.toLocaleString('id-ID')}</strong></td>
                 <td data-label="Status ACC">${statusDisplay}</td>
                 <td data-label="Bukti">${buktiDisplay}</td>
-                <td data-label="Aksi" class="col-actions">
-                    <button onclick="editPengeluaran(${t.id})">&#9998;</button>
-                    <button class="tombol-hapus-bongkaran" onclick="hapusTransaksi(${t.id}, 'pengeluaran')">&times;</button>
-                </td>
+                <td data-label="Aksi" class="col-actions">${actionButtons}</td>
             </tr>`;
     });
 
@@ -736,10 +741,7 @@ function renderCashflowTable() {
     filtered.forEach(t => {
         let keterangan = '', pemasukan = 0, pengeluaran = 0, tanggal = '', status = '-';
         if (t.type === 'pemasukan') {
-            const penghasilan = t.jenisSewa === 'harian' 
-                ? (Math.ceil((new Date(t.tglKeluar) - new Date(t.tglMasuk)) / (1000 * 60 * 60 * 24)) || 1) * t.harga 
-                : t.harga;
-            pemasukan = penghasilan;
+            pemasukan = t.jumlahBayar || 0;
             totalPemasukan += pemasukan;
             const room = property.rooms.find(r => r.id == t.roomId);
             const roomName = room ? room.name : 'N/A';
@@ -797,13 +799,17 @@ function renderRoomList() {
         property.rooms.sort((a,b) => a.name.localeCompare(b.name)).forEach(room => {
             const roomDiv = document.createElement('div');
             roomDiv.className = 'item-kamar';
-            roomDiv.innerHTML = `
-                <span>${formatTampilan(room.name)}</span>
+            
+            let actionButtonsHTML = '';
+            if (currentUserRole === 'admin') {
+                actionButtonsHTML = `
                 <div class="item-kamar-actions">
                     <button onclick="handleEditKamar(${room.id})">&#9998;</button>
                     <button class="tombol-hapus-kamar" onclick="handleHapusKamar(${room.id})">&times;</button>
-                </div>
-            `;
+                </div>`;
+            }
+
+            roomDiv.innerHTML = `<span>${formatTampilan(room.name)}</span>${actionButtonsHTML}`;
             containerDaftarKamar.appendChild(roomDiv);
         });
     } else {
@@ -828,6 +834,10 @@ async function handleTambahKamar() {
 }
 
 async function handleEditKamar(roomId) {
+    if (currentUserRole !== 'admin') {
+        alert('Hanya Admin yang dapat mengubah nama kamar.');
+        return;
+    }
     const property = getActiveProperty();
     const room = property.rooms.find(r => r.id === roomId);
     if (!room) return;
@@ -934,6 +944,7 @@ function showPemasukanModal(trx = null) {
         inputNamaKamarSelect.value = trx.roomId;
         document.getElementById('input-nama-penyewa').value = formatTampilan(trx.namaPenyewa);
         document.getElementById('input-harga-kamar').value = String(trx.harga);
+        document.getElementById('input-jumlah-bayar').value = String(trx.jumlahBayar);
     } else {
         modalJudulPemasukan.textContent = 'Tambah Pemasukan Baru';
         editIdPemasukan.value = '';
@@ -967,6 +978,7 @@ async function handleFormPemasukanSubmit(event) {
         roomId: Number(inputNamaKamarSelect.value),
         namaPenyewa: document.getElementById('input-nama-penyewa').value.trim().toLowerCase(),
         harga: getCleanNumberValue('input-harga-kamar'),
+        jumlahBayar: getCleanNumberValue('input-jumlah-bayar'),
         bukti: existingTrx.bukti || '',
         statusTransfer: existingTrx.statusTransfer || 'pending',
     };
@@ -984,6 +996,10 @@ async function handleFormPemasukanSubmit(event) {
 }
 
 function editPemasukan(id) {
+    if (currentUserRole !== 'admin') {
+        alert('Hanya Admin yang dapat mengubah data pemasukan.');
+        return;
+    }
     const trx = getActiveProperty().transactions.find(t => t.id === id);
     if (trx) showPemasukanModal(trx);
 }
@@ -1038,6 +1054,10 @@ async function handleFormPengeluaranSubmit(event) {
 }
 
 function editPengeluaran(id) {
+    if (currentUserRole !== 'admin') {
+        alert('Hanya Admin yang dapat mengubah data pengeluaran.');
+        return;
+    }
     const trx = getActiveProperty().transactions.find(t => t.id === id);
     if (trx) showPengeluaranModal(trx);
 }
